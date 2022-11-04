@@ -25,15 +25,16 @@ def chat_client():
         sys.exit()
 
     print('Connected to remote host. You can start sending messages')
-    sys.stdout.write('[Me] ');
+    sys.stdout.write('[Me] ')
     sys.stdout.flush()
 
     while 1:
 
         # Get the list sockets which are readable, time-out after 1 s
         ready_to_read = select.select([s], [], [], 1)[0]
-        import msvcrt
-        if msvcrt.kbhit(): ready_to_read.append(sys.stdin)
+        # Gets input from I/0
+        if msvcrt.kbhit(): 
+            ready_to_read.append(sys.stdin)
 
         for sock in ready_to_read:
             if sock == s:
@@ -45,7 +46,7 @@ def chat_client():
                 else:
                     # print data
                     sys.stdout.write(data.decode('utf-8'))
-                    sys.stdout.write('[Me] ');
+                    sys.stdout.write('[Me] ')
                     sys.stdout.flush()
 
             else:
