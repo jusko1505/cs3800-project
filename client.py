@@ -1,15 +1,20 @@
 # chat_client.py
-
 import sys
 import socket
 import select
 import msvcrt
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Util.Padding import unpad
 
 
 def chat_client():
     if (len(sys.argv) < 3):
         print('Usage : python chat_client.py hostname port')
         sys.exit()
+
+    # encryption key
+    key = AES.new(b'testkey123456789', AES.MODE_CBC, b'ThisisanIV123456')
 
     host = sys.argv[1]
     port = int(sys.argv[2])
@@ -29,7 +34,6 @@ def chat_client():
     sys.stdout.flush()
 
     while 1:
-
         # Get the list sockets which are readable, time-out after 1 s
         ready_to_read = select.select([s], [], [], 1)[0]
         # Gets input from I/0
@@ -52,10 +56,11 @@ def chat_client():
             else:
                 # user entered a message
                 msg = sys.stdin.readline()
-                s.send(msg.encode('utf-8'))
+                # send encrypted message
+                s.send(key.encrypt(pad(msg.encode('utf-8'), 32)))
                 sys.stdout.write('[Me] ')
                 sys.stdout.flush()
-
+                
 
 if __name__ == "__main__":
     sys.exit(chat_client())

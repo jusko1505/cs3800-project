@@ -1,6 +1,8 @@
 import sys
 import socket
 import select
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
 
 HOST = '' 
 SOCKET_LIST = []
@@ -8,6 +10,9 @@ RECV_BUFFER = 4096
 PORT = 9009
 
 def chat_server():
+    # encryption test key
+    key = AES.new(b'testkey123456789', AES.MODE_CBC, b'ThisisanIV123456')
+
     # AF_INET = Address Family that the socket can commuicate with, IPv4, here
     # SOCK_STREAM = TCP socket; SOCK_DGRAM = UDP
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,13 +51,15 @@ def chat_server():
             # a message from a client, not a new connection
             else:
                 # process data recieved from client, 
-                try:
+
                     # receiving data from the socket.
                     # data must be decoded in utf-8 for the message to be received
-                    data = sock.recv(RECV_BUFFER).decode('utf-8')
+                    data = sock.recv(RECV_BUFFER)
                     if data:
                         # there is something in the socket
-                        broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data)  
+                        # decrypt and decode the message
+                        data = unpad(key.decrypt(data), 32)
+                        broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data.decode())  
                     else:
                         # remove the socket that's broken    
                         if sock in SOCKET_LIST:
@@ -62,9 +69,7 @@ def chat_server():
                         broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr) 
 
                 # exception 
-                except:
-                    broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
-                    continue
+
 
     server_socket.close()
     
@@ -74,7 +79,7 @@ def broadcast (server_socket, sock, message):
         # send the message only to peer
         if socket != server_socket and socket != sock :
             try :
-                socket.send(message.encode(encoding='UTF-8'))
+                socket.send((message.encode(encoding='UTF-8')))
             except Exception as e:
                 print("except here" + str(e))
                 # broken socket connection
