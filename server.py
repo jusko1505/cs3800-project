@@ -57,7 +57,7 @@ def chat_server():
                     data = sock.recv(RECV_BUFFER)
                     if data:
                         # there is something in the socket
-                        # decrypt and decode the message
+                        # decrypt and decode the message, have to unpad the message to the block size
                         data = unpad(key.decrypt(data), 32)
                         broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data.decode())  
                     else:

@@ -56,7 +56,7 @@ def chat_client():
             else:
                 # user entered a message
                 msg = sys.stdin.readline()
-                # send encrypted message
+                # send encrypted message and pad the message to the block size
                 s.send(key.encrypt(pad(msg.encode('utf-8'), 32)))
                 sys.stdout.write('[Me] ')
                 sys.stdout.flush()
